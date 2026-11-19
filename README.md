@@ -4,12 +4,12 @@
 
 **Implementasi Integrasi Database & Eloquent ORM pada Sistem Pengajuan Surat Mahasiswa (`/api/v1`)**
 
-![PHP](https://shields.io)
-![Laravel](https://shields.io)
-![SQLite](https://shields.io)
-![API](https://shields.io)
-![REST Client](https://shields.io)
-[![License: MIT](https://shields.io)](./LICENSE)
+![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=flat&logo=php&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-Eloquent_ORM-FF2D20?style=flat&logo=laravel&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=flat&logo=sqlite&logoColor=white)
+![API](https://img.shields.io/badge/REST_API-v1-009688?style=flat)
+![REST Client](https://img.shields.io/badge/Tested_with-VS_Code_REST_Client-007ACC?style=flat&logo=visualstudiocode&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 </div>
 
