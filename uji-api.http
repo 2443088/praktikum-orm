@@ -1,0 +1,164 @@
+### Uji API Lengkap Praktikum ORM (ekstensi VS Code "REST Client": klik "Send Request")
+### Jalankan dulu: php artisan migrate:fresh --seed && php artisan serve
+### Jalankan BERURUTAN dari atas ke bawah (id 23 dst. bergantung urutan). Ulangi dengan migrate:fresh --seed.
+
+@base = http://127.0.0.1:8000/api/v1
+
+############################ 10 SKENARIO MODUL ############################
+
+### 1. Daftar mahasiswa + jumlah surat -> 200
+GET {{base}}/mahasiswa?q=andi
+Accept: application/json
+
+### 2. Tambah mahasiswa -> 201 (id = 23)
+POST {{base}}/mahasiswa
+Accept: application/json
+Content-Type: application/json
+
+{"nim": "2301050", "nama": "Rina Wulandari", "prodi": "Sistem Informasi", "angkatan": 2023}
+
+### 3. Validasi gagal -> 422
+POST {{base}}/mahasiswa
+Accept: application/json
+Content-Type: application/json
+
+{"nim": "2201001", "nama": "", "angkatan": 1990}
+
+### 4. Ubah sebagian data -> 200
+PATCH {{base}}/mahasiswa/23
+Accept: application/json
+Content-Type: application/json
+
+{"prodi": "Teknik Informatika"}
+
+### 5. Detail mahasiswa + surat + jenis surat (eager loading) -> 200
+GET {{base}}/mahasiswa/1
+Accept: application/json
+
+### 6. Ajukan surat (transaksi: surat + riwayat) -> 201 (id = 23, 1 riwayat)
+POST {{base}}/surat
+Accept: application/json
+Content-Type: application/json
+
+{"mahasiswa_id": 23, "jenis_surat_id": 3, "keperluan": "Penelitian skripsi di Diskominfo."}
+
+### 7. Ubah status -> 200 (2 riwayat)
+PATCH {{base}}/surat/23/status
+Accept: application/json
+Content-Type: application/json
+
+{"status": "diproses", "catatan": "Verifikasi BAAK"}
+
+### 8. Aturan bisnis menolak (Selesai -> Diproses) -> 422
+PATCH {{base}}/surat/1/status
+Accept: application/json
+Content-Type: application/json
+
+{"status": "diproses"}
+
+### 9. Hapus mahasiswa (surat ikut terhapus / cascade) -> 204
+DELETE {{base}}/mahasiswa/23
+Accept: application/json
+
+### 10. Surat milik mahasiswa yang dihapus -> 404
+GET {{base}}/surat/23
+Accept: application/json
+
+### Bonus: filter surat per status + paginasi -> 200
+GET {{base}}/surat?status=diproses&per_page=5
+Accept: application/json
+
+############################ LATIHAN 1: CRUD JENIS SURAT ############################
+
+### L1.1 Daftar jenis surat -> 200
+GET {{base}}/jenis-surat
+Accept: application/json
+
+### L1.2 Tambah jenis surat -> 201 (id = 5)
+POST {{base}}/jenis-surat
+Accept: application/json
+Content-Type: application/json
+
+{"kode": "SKL", "nama": "Surat Keterangan Lulus"}
+
+### L1.3 Validasi gagal (kode duplikat) -> 422
+POST {{base}}/jenis-surat
+Accept: application/json
+Content-Type: application/json
+
+{"kode": "SKAK", "nama": "Duplikat"}
+
+### L1.4 Detail jenis surat + surat_count -> 200
+GET {{base}}/jenis-surat/1
+Accept: application/json
+
+### L1.5 Ubah jenis surat -> 200
+PATCH {{base}}/jenis-surat/5
+Accept: application/json
+Content-Type: application/json
+
+{"nama": "Surat Keterangan Lulus Sidang"}
+
+### L1.6 Hapus jenis surat yang masih dipakai -> 409 Conflict
+DELETE {{base}}/jenis-surat/1
+Accept: application/json
+
+### L1.7 Hapus jenis surat yang tidak dipakai -> 204
+DELETE {{base}}/jenis-surat/5
+Accept: application/json
+
+### L1.8 Jenis surat yang sudah dihapus -> 404
+GET {{base}}/jenis-surat/5
+Accept: application/json
+
+############################ LATIHAN 2: STATISTIK ############################
+
+### L2. Rekap surat per status & per jenis surat -> 200
+GET {{base}}/statistik
+Accept: application/json
+
+############################ LATIHAN 3: DOSEN & PERSETUJUAN ############################
+
+### L3.1 Setujui surat 2 (Diproses -> Selesai) + isi disetujui_oleh dosen id 1 -> 200
+PATCH {{base}}/surat/2/status
+Accept: application/json
+Content-Type: application/json
+
+{"status": "selesai", "catatan": "Disetujui Kaprodi.", "disetujui_oleh": 1}
+
+### L3.2 Detail surat menampilkan dosen -> 200
+GET {{base}}/surat/2
+Accept: application/json
+
+### L3.3 disetujui_oleh dosen yang tidak ada -> 422
+PATCH {{base}}/surat/3/status
+Accept: application/json
+Content-Type: application/json
+
+{"status": "diproses", "disetujui_oleh": 999}
+
+############################ LATIHAN 4: SOFT DELETE ############################
+
+### L4.1 Hapus surat 3 (soft delete) -> 204
+DELETE {{base}}/surat/3
+Accept: application/json
+
+### L4.2 Surat 3 tidak muncul lagi -> 404
+GET {{base}}/surat/3
+Accept: application/json
+
+### L4.3 Daftar surat terhapus (onlyTrashed) -> 200, berisi surat 3
+GET {{base}}/surat/trashed
+Accept: application/json
+
+### L4.4 Pulihkan surat 3 (restore) -> 200
+PATCH {{base}}/surat/3/restore
+Accept: application/json
+
+### L4.5 Surat 3 kembali muncul -> 200
+GET {{base}}/surat/3
+Accept: application/json
+
+### L4.6 Pulihkan surat yang tidak ada di tempat sampah -> 404
+PATCH {{base}}/surat/3/restore
+Accept: application/json
